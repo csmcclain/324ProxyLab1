@@ -1,0 +1,119 @@
+==5735== Memcheck, a memory error detector
+==5735== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==5735== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==5735== Command: ./proxy 28771
+==5735== Parent PID: 5650
+==5735== 
+==5735== Syscall param socketcall.accept(addrlen_in) points to uninitialised byte(s)
+==5735==    at 0x4E4F791: accept (accept.c:26)
+==5735==    by 0x10AE68: main (proxy.c:294)
+==5735==  Address 0x1fff000214 is on thread 1's stack
+==5735==  in frame #1, created by main (proxy.c:239)
+==5735== 
+==5735== Syscall param socketcall.accept(addrlen_out) points to uninitialised byte(s)
+==5735==    at 0x4E4F791: accept (accept.c:26)
+==5735==    by 0x10AE68: main (proxy.c:294)
+==5735==  Address 0x1fff000214 is on thread 1's stack
+==5735==  in frame #1, created by main (proxy.c:239)
+==5735== 
+==5735== Source and destination overlap in strcpy(0x1ffefa8aa0, 0x1ffefa8aa0)
+==5735==    at 0x4C34E97: strcpy (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x10A0A1: parse_request (proxy.c:48)
+==5735==    by 0x10A9DB: manageClient (proxy.c:186)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C34B96: strncat (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x10A3B7: generateRequest (proxy.c:94)
+==5735==    by 0x10AA1F: manageClient (proxy.c:190)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x50A2B82: ____strtoul_l_internal (strtol_l.c:434)
+==5735==    by 0x5165132: getaddrinfo (getaddrinfo.c:2275)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x5165143: getaddrinfo (getaddrinfo.c:2276)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C34975: index (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x516254C: gaih_inet.constprop.7 (getaddrinfo.c:530)
+==5735==    by 0x5164DA3: getaddrinfo (getaddrinfo.c:2300)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C3496A: index (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x516254C: gaih_inet.constprop.7 (getaddrinfo.c:530)
+==5735==    by 0x5164DA3: getaddrinfo (getaddrinfo.c:2300)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C34D08: strlen (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x51A038A: inet_pton (inet_pton.c:69)
+==5735==    by 0x5162FDB: gaih_inet.constprop.7 (getaddrinfo.c:533)
+==5735==    by 0x5164DA3: getaddrinfo (getaddrinfo.c:2300)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C34D08: strlen (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x51BCF50: __nscd_getai (nscd_getai.c:56)
+==5735==    by 0x516319F: gaih_inet.constprop.7 (getaddrinfo.c:652)
+==5735==    by 0x5164DA3: getaddrinfo (getaddrinfo.c:2300)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x508D6FF: tolower (ctype.c:46)
+==5735==    by 0x4C3561D: strcasecmp (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x58528DB: _nss_files_gethostbyname4_r (files-hosts.c:422)
+==5735==    by 0x5162E14: gaih_inet.constprop.7 (getaddrinfo.c:786)
+==5735==    by 0x5164DA3: getaddrinfo (getaddrinfo.c:2300)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Use of uninitialised value of size 8
+==5735==    at 0x508D713: tolower (ctype.c:46)
+==5735==    by 0x4C3561D: strcasecmp (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x58528DB: _nss_files_gethostbyname4_r (files-hosts.c:422)
+==5735==    by 0x5162E14: gaih_inet.constprop.7 (getaddrinfo.c:786)
+==5735==    by 0x5164DA3: getaddrinfo (getaddrinfo.c:2300)
+==5735==    by 0x10A804: generateSocket (proxy.c:141)
+==5735==    by 0x10AA3C: manageClient (proxy.c:193)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C34D08: strlen (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x50DC2E4: fputs (iofputs.c:33)
+==5735==    by 0x10AB8F: manageClient (proxy.c:222)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x4C35DAC: strcmp (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5735==    by 0x10A983: manageClient (proxy.c:178)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== Conditional jump or move depends on uninitialised value(s)
+==5735==    at 0x10A986: manageClient (proxy.c:178)
+==5735==    by 0x10AEEC: main (proxy.c:300)
+==5735== 
+==5735== 
+==5735== More than 10000000 total errors detected.  I'm not reporting any more.
+==5735== Final error counts will be inaccurate.  Go fix your program!
+==5735== Rerun with --error-limit=no to disable this cutoff.  Note
+==5735== that errors may occur in your program without prior warning from
+==5735== Valgrind, because errors are no longer being displayed.
+==5735== 
