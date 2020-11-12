@@ -61,7 +61,8 @@ int parse_request(const char *request, char *method, char *hostname, char *port,
 			portInt++;
 		}
 	}
-	strcpy(uri, strtok_r(NULL, "/", &url_ptr));
+	
+	strcpy(uri, strtok_r(NULL, " ", &url_ptr));
 	
 
 	int i = 0;
@@ -167,30 +168,45 @@ int generateSocket(char *hostname, char* port) {
 }
 
 
-void manageClient(int cfd, struct sockaddr_storage peer_addr, socklen_t peer_addr_len) {
+void manageClient(int cfd) {
+	struct sockaddr_storage peer_addr;
+	socklen_t peer_addr_len;
     ssize_t nread;
-    char buf[MAX_OBJECT_SIZE];
+    char *buf = calloc(MAX_OBJECT_SIZE, sizeof(char));
 
     // Get message
     while (1) {
         peer_addr_len = sizeof(struct sockaddr_storage);
         nread = recv(cfd, buf, MAX_OBJECT_SIZE, 0);
-        if (!strcmp(buf+(nread-4), "\r\n\r\n")) break;
+        if (!strcmp(buf + (strlen(buf) - 4), "\r\n\r\n")) break;
+		fprintf(stderr, "%s", buf);
     }
     //TODO REMOVE ME!!!
     fprintf(stderr, "%s", buf);
 
     // Parse message
-    char method[MAX_METHOD], hostname[MAX_HOSTNAME], port[MAX_PORT], uri[MAX_URI];
+    char *method = calloc(MAX_METHOD, sizeof(char));
+	char *hostname =calloc(MAX_HOSTNAME, sizeof(char));
+	char *port = calloc(MAX_PORT, sizeof(char));
+	char *uri = calloc(MAX_URI, sizeof(char));;
     http_header headers[MAX_HEADERS];
     int numHeaders = parse_request(buf, method, hostname, port, uri, headers);
 
+	free(buf);
     // Construct message
-    char req[MAX_OBJECT_SIZE];
+    char *req = calloc(MAX_OBJECT_SIZE, sizeof(char));
     generateRequest(method, hostname, port, uri, headers, numHeaders, req);
+
+	fprintf(stderr, "%s", req);
 
     // Construct Server Socket
     int servfd = generateSocket(hostname, port);
+
+	free(method);
+	free(hostname);
+	free(port);
+	free(uri);
+
 
     // Write to Server Socket
     int numBytesRead = strlen(req), numBytesSent = 0;
@@ -201,10 +217,12 @@ void manageClient(int cfd, struct sockaddr_storage peer_addr, socklen_t peer_add
 		}
 	} while (numBytesSent < numBytesRead && req[numBytesRead] != '\0');
 
+	free(req);
+
     // Message sent Now to receive the message
 
-    char res[MAX_OBJECT_SIZE];
-    numBytesRead = 0;
+    char *res = calloc(MAX_OBJECT_SIZE, sizeof(char));
+    numBytesRead = 0; 
 
     do {
 		nread = read(servfd, (res + numBytesRead), (MAX_OBJECT_SIZE - numBytesRead));
@@ -230,6 +248,7 @@ void manageClient(int cfd, struct sockaddr_storage peer_addr, socklen_t peer_add
 	} while (numBytesSent < numBytesRead && req[numBytesRead] != '\0');
 
     close(cfd);
+	free(res);
 
 }
 
@@ -286,10 +305,7 @@ int main(int argc, char *argv[])
 	}
 
     // TODO: THIS WILL HANDLE A SINGLE CLIENT AT A TIME, YOU WILL NEED TO UPDATE THIS TO HANDLE MULTIPLE CLIENTS
-    int cont = 1;
-    //pthread_t id[10];
-    //int i = 1;
-    while (cont)
+    while (1)
     {
         int clientFD = accept(sfd, (struct sockaddr *) &peer_addr, &peer_addr_len);
         if (clientFD == -1) {
@@ -297,8 +313,7 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
         
-        manageClient(clientFD, peer_addr, peer_addr_len);
-        //cont = 0;
+        manageClient(clientFD);
     }
     
 
