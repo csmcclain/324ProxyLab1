@@ -181,8 +181,7 @@ void manageClient(int cfd) {
         if (!strcmp(buf + (strlen(buf) - 4), "\r\n\r\n")) break;
 		fprintf(stderr, "%s", buf);
     }
-    //TODO REMOVE ME!!!
-    fprintf(stderr, "%s", buf);
+
 
     // Parse message
     char *method = calloc(MAX_METHOD, sizeof(char));
@@ -196,8 +195,6 @@ void manageClient(int cfd) {
     // Construct message
     char *req = calloc(MAX_OBJECT_SIZE, sizeof(char));
     generateRequest(method, hostname, port, uri, headers, numHeaders, req);
-
-	fprintf(stderr, "%s", req);
 
     // Construct Server Socket
     int servfd = generateSocket(hostname, port);
@@ -237,7 +234,6 @@ void manageClient(int cfd) {
     close(servfd);
 
     // Now I have the server response lets forward it on to the server!!!
-    fprintf(stderr, "%s", res);
 
     numBytesSent = 0;
 	do {
@@ -250,6 +246,15 @@ void manageClient(int cfd) {
     close(cfd);
 	free(res);
 
+}
+
+// thread stuff goes here!!!
+void *thread(void *vargp) {
+	int connfd = *((int*)vargp);
+	pthread_detach(pthread_self());
+	free(vargp);
+	manageClient(connfd);
+	return NULL;
 }
 
 
@@ -268,6 +273,7 @@ int main(int argc, char *argv[])
     int sfd, s;
     struct sockaddr_storage peer_addr;
 	socklen_t peer_addr_len;
+	pthread_t tid;
 
     memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;           /* Choose IPv4 or IPv6 */
@@ -305,15 +311,12 @@ int main(int argc, char *argv[])
 	}
 
     // TODO: THIS WILL HANDLE A SINGLE CLIENT AT A TIME, YOU WILL NEED TO UPDATE THIS TO HANDLE MULTIPLE CLIENTS
+	int *clientFD;
     while (1)
     {
-        int clientFD = accept(sfd, (struct sockaddr *) &peer_addr, &peer_addr_len);
-        if (clientFD == -1) {
-            fprintf(stderr, "Error accepting connection\n");
-            exit(EXIT_FAILURE);
-        }
-        
-        manageClient(clientFD);
+		clientFD = malloc(sizeof(int));
+        *clientFD = accept(sfd, (struct sockaddr *) &peer_addr, &peer_addr_len);
+		pthread_create(&tid, NULL, thread, clientFD);
     }
     
 
