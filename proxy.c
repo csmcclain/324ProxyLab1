@@ -8,6 +8,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include "sbuf.h"
+#include <signal.h>
+
 
 /* Recommended max cache and object sizes */
 #define MAX_CACHE_SIZE 1049000
@@ -20,6 +23,10 @@
 #define MAX_HOSTNAME 200
 #define MAX_PORT 10
 #define MAX_URI 100
+
+// These are needed for threads
+#define NTHREADS  20
+#define SBUFSIZE  20
 
 /* You won't lose style points for including this long line in your code */
 static const char *user_agent_hdr = "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:10.0.3) Gecko/20120305 Firefox/10.0.3\r\n";
@@ -169,18 +176,19 @@ int generateSocket(char *hostname, char* port) {
 
 
 void manageClient(int cfd) {
-	struct sockaddr_storage peer_addr;
-	socklen_t peer_addr_len;
     ssize_t nread;
     char *buf = calloc(MAX_OBJECT_SIZE, sizeof(char));
 
-    // Get message
-    while (1) {
-        peer_addr_len = sizeof(struct sockaddr_storage);
-        nread = recv(cfd, buf, MAX_OBJECT_SIZE, 0);
-        if (!strcmp(buf + (strlen(buf) - 4), "\r\n\r\n")) break;
-		fprintf(stderr, "%s", buf);
-    }
+	int numRead = 0;
+	do {
+		nread = read(cfd, (buf + numRead), (MAX_OBJECT_SIZE - numRead));
+		if (nread == -1) {
+			perror("read");
+			exit(EXIT_FAILURE);
+		}
+		numRead += nread;
+		if (!strcmp(buf+(strlen(buf) - 4), "\r\n\r\n")) break;
+	} while (nread != 0);
 
 
     // Parse message
@@ -249,15 +257,22 @@ void manageClient(int cfd) {
 }
 
 // thread stuff goes here!!!
+sbuf_t sbuf;
+
 void *thread(void *vargp) {
-	int connfd = *((int*)vargp);
 	pthread_detach(pthread_self());
 	free(vargp);
-	manageClient(connfd);
-	return NULL;
+	while (1) {
+		int cfd = sbuf_remove(&sbuf);
+		manageClient(cfd);
+	}
 }
 
-
+void sigIntHand(int sig) {
+	sbuf_deinit(&sbuf);
+	fprintf(stderr, "terminated program\n");
+	exit(EXIT_SUCCESS);
+}
 
 int main(int argc, char *argv[])
 {
@@ -274,6 +289,11 @@ int main(int argc, char *argv[])
     struct sockaddr_storage peer_addr;
 	socklen_t peer_addr_len;
 	pthread_t tid;
+
+	sbuf_init(&sbuf, SBUFSIZE); //line:conc:pre:initsbuf
+	signal(SIGINT, sigIntHand);
+	for (int i = 0; i < NTHREADS; i++)  /* Create worker threads */ //line:conc:pre:begincreate
+		pthread_create(&tid, NULL, thread, NULL);               //line:conc:pre:endcreate
 
     memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;           /* Choose IPv4 or IPv6 */
@@ -311,12 +331,11 @@ int main(int argc, char *argv[])
 	}
 
     // TODO: THIS WILL HANDLE A SINGLE CLIENT AT A TIME, YOU WILL NEED TO UPDATE THIS TO HANDLE MULTIPLE CLIENTS
-	int *clientFD;
+	int clientFD;
     while (1)
     {
-		clientFD = malloc(sizeof(int));
-        *clientFD = accept(sfd, (struct sockaddr *) &peer_addr, &peer_addr_len);
-		pthread_create(&tid, NULL, thread, clientFD);
+     	clientFD = accept(sfd, (struct sockaddr *) &peer_addr, &peer_addr_len);
+		sbuf_insert(&sbuf, clientFD);
     }
     
 
