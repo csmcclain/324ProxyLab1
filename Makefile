@@ -19,8 +19,14 @@ proxy.o: proxy.c csapp.h
 sbuf.o: sbuf.c sbuf.h
 	$(CC) $(CFLAGS) -c sbuf.c
 
-proxy: proxy.o csapp.o sbuf.o
-	$(CC) $(CFLAGS) proxy.o csapp.o sbuf.o -o proxy $(LDFLAGS)
+httpParser.o: httpParser.c httpParser.h
+	$(CC) $(CFLAGS) -c httpParser.c
+
+mySocket.o: mySocket.c mySocket.h
+	$(CC) $(CFLAGS) -c mySocket.c
+
+proxy: proxy.o csapp.o sbuf.o httpParser.o mySocket.o
+	$(CC) $(CFLAGS) mySocket.o httpParser.o proxy.o csapp.o sbuf.o -o proxy $(LDFLAGS)
 
 # Creates a tarball in ../proxylab-handin.tar that you can then
 # hand in. DO NOT MODIFY THIS!
