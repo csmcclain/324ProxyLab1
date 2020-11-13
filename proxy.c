@@ -67,9 +67,9 @@ void manageClient(int cfd) {
 
 // thread stuff goes here!!!
 sbuf_t sbuf;
+pthread_t tid[NTHREADS];
 
 void *thread(void *vargp) {
-	pthread_detach(pthread_self());
 	free(vargp);
 	while (1) {
 		int cfd = sbuf_remove(&sbuf);
@@ -77,10 +77,26 @@ void *thread(void *vargp) {
 	}
 }
 
-void sigIntHand(int sig) {
+void cleanup() {
 	sbuf_deinit(&sbuf);
-	fprintf(stderr, "terminated program\n");
+	for (int i = 0; i < NTHREADS; i++) {
+		if(pthread_cancel(tid[i]) != 0) {
+			fprintf(stderr, "thread cancel failed\n");
+		}	
+	}
+
+	for (int i = 0; i < NTHREADS; i++) {
+		if(pthread_join(tid[i], NULL) != 0) {
+			fprintf(stderr, "thread cancel failed\n");
+		}	
+	
+	}
+
 	exit(EXIT_SUCCESS);
+}
+
+void sigHandler(int sig) {
+	cleanup();
 }
 
 int main(int argc, char *argv[])
@@ -97,12 +113,13 @@ int main(int argc, char *argv[])
     int sfd, s;
     struct sockaddr_storage peer_addr;
 	socklen_t peer_addr_len;
-	pthread_t tid;
+	
 
 	sbuf_init(&sbuf, SBUFSIZE); //line:conc:pre:initsbuf
-	signal(SIGINT, sigIntHand);
+	signal(SIGINT, sigHandler);
+	signal(SIGTERM, sigHandler);
 	for (int i = 0; i < NTHREADS; i++)  /* Create worker threads */ //line:conc:pre:begincreate
-		pthread_create(&tid, NULL, thread, NULL);               //line:conc:pre:endcreate
+		pthread_create(&tid[i], NULL, thread, NULL);               //line:conc:pre:endcreate
 
     memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;           /* Choose IPv4 or IPv6 */
