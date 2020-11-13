@@ -169,18 +169,20 @@ int generateSocket(char *hostname, char* port) {
 
 
 void manageClient(int cfd) {
-	struct sockaddr_storage peer_addr;
-	socklen_t peer_addr_len;
     ssize_t nread;
     char *buf = calloc(MAX_OBJECT_SIZE, sizeof(char));
 
     // Get message
-    while (1) {
-        peer_addr_len = sizeof(struct sockaddr_storage);
-        nread = recv(cfd, buf, MAX_OBJECT_SIZE, 0);
-        if (!strcmp(buf + (strlen(buf) - 4), "\r\n\r\n")) break;
-		fprintf(stderr, "%s", buf);
-    }
+	int numRead = 0;
+	do {
+		nread = read(cfd, (buf + numRead), (MAX_OBJECT_SIZE - numRead));
+		if (nread == -1) {
+			perror("read");
+			exit(EXIT_FAILURE);
+		}
+		numRead += nread;
+		if (!strcmp(buf+(strlen(buf) - 4), "\r\n\r\n")) break;
+	} while (nread != 0);
     //TODO REMOVE ME!!!
     fprintf(stderr, "%s", buf);
 
